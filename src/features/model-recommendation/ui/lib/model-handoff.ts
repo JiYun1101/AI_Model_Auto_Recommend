@@ -61,12 +61,14 @@ export function openPendingModelWindow(): Window | null {
   if (!target) return null;
 
   target.document.title = "ModelFit";
-  target.document.body.innerHTML = `
-    <main style="font-family: system-ui, sans-serif; padding: 48px; color: #374151;">
-      <h1 style="font-size: 20px; margin-bottom: 8px;">ModelFit</h1>
-      <p style="margin: 0; color: #6b7280;">가장 적합한 AI 모델을 찾는 중입니다...</p>
-    </main>
-  `;
+  if (target.document.body) {
+    target.document.body.innerHTML = `
+      <main style="font-family: system-ui, sans-serif; padding: 48px; color: #374151;">
+        <h1 style="font-size: 20px; margin-bottom: 8px;">ModelFit</h1>
+        <p style="margin: 0; color: #6b7280;">가장 적합한 AI 모델을 찾는 중입니다...</p>
+      </main>
+    `;
+  }
 
   return target;
 }
