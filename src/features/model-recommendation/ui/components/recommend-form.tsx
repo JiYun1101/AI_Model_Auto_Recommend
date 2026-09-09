@@ -4,6 +4,11 @@ import { useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import { useRecommend } from "../hooks/use-recommend";
 import { useAppStore } from "@/src/shared/lib/store";
+import {
+  copyPromptToClipboard,
+  openPendingModelWindow,
+  sendPreparedWindowToModel,
+} from "../lib/model-handoff";
 
 export function RecommendForm() {
   const [prompt, setPrompt] = useState("");
@@ -19,22 +24,43 @@ export function RecommendForm() {
     e.preventDefault();
     setError("");
 
-    if (!prompt.trim()) {
+    const trimmedPrompt = prompt.trim();
+
+    if (!trimmedPrompt) {
       setError("프롬프트를 입력해주세요.");
       return;
     }
-    if (prompt.trim().length < 5) {
+    if (trimmedPrompt.length < 5) {
       setError("프롬프트가 너무 짧습니다. 5자 이상 입력해주세요.");
       return;
     }
 
-    setLastPrompt(prompt);
-    mutate(prompt, {
+    // 사용자 입력 이벤트 안에서 새 탭을 먼저 확보해야 브라우저 팝업 차단을
+    // 피할 수 있다. 추천 응답이 온 뒤 이 탭을 실제 모델 페이지로 이동시킨다.
+    const targetWindow = openPendingModelWindow();
+
+    // 외부 AI 웹앱의 DOM에는 직접 접근할 수 없으므로 프롬프트는 먼저
+    // 클립보드에 복사한다. 대상 페이지에서 바로 붙여넣어 사용할 수 있다.
+    void copyPromptToClipboard(trimmedPrompt);
+
+    setLastPrompt(trimmedPrompt);
+    mutate(trimmedPrompt, {
       onSuccess: (data) => {
+        const topRecommendation =
+          data.recommendations.find((item) => item.rank === 1) ??
+          data.recommendations[0];
+
+        if (topRecommendation) {
+          sendPreparedWindowToModel(targetWindow, topRecommendation.modelId);
+        } else {
+          targetWindow?.close();
+        }
+
         const encoded = encodeURIComponent(JSON.stringify(data));
         router.push(`/recommend?result=${encoded}`);
       },
       onError: (err) => {
+        targetWindow?.close();
         setError(err.message ?? "오류가 발생했습니다. 다시 시도해주세요.");
       },
     });
@@ -113,6 +139,10 @@ export function RecommendForm() {
           "AI 모델 추천받기"
         )}
       </button>
+
+      <p className="text-center text-xs text-gray-400">
+        Enter 또는 버튼으로 실행하면 프롬프트를 복사하고 1위 추천 모델을 새 탭에서 엽니다.
+      </p>
     </form>
   );
 }
