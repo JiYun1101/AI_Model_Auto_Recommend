@@ -66,6 +66,15 @@ export function RecommendForm() {
     });
   }
 
+  function handlePromptKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) {
+      return;
+    }
+
+    e.preventDefault();
+    e.currentTarget.form?.requestSubmit();
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate className="w-full space-y-4">
       <div>
@@ -79,6 +88,7 @@ export function RecommendForm() {
           id={promptId}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={handlePromptKeyDown}
           placeholder="예: Python으로 REST API 서버를 만드는 방법을 단계별로 설명해줘"
           rows={5}
           disabled={isPending}
@@ -141,7 +151,7 @@ export function RecommendForm() {
       </button>
 
       <p className="text-center text-xs text-gray-400">
-        Enter 또는 버튼으로 실행하면 프롬프트를 복사하고 1위 추천 모델을 새 탭에서 엽니다.
+        Enter로 실행 · Shift+Enter로 줄바꿈 · 실행 시 프롬프트를 복사하고 1위 추천 모델을 새 탭에서 엽니다.
       </p>
     </form>
   );
