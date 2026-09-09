@@ -8,6 +8,8 @@ import {
   type ModelNewsItem,
 } from "../domain/model-news";
 
+type NewsTagFilter = (typeof NEWS_TAG_FILTERS)[number];
+
 const CATEGORY_LABELS: Record<ModelNewsItem["category"], string> = {
   model_release: "신규 모델",
   model_update: "모델 업데이트",
@@ -19,7 +21,7 @@ const CATEGORY_LABELS: Record<ModelNewsItem["category"], string> = {
 export function ModelNewsFeed() {
   const [provider, setProvider] =
     useState<(typeof NEWS_PROVIDER_FILTERS)[number]>("전체");
-  const [tag, setTag] = useState<(typeof NEWS_TAG_FILTERS)[number]>("전체");
+  const [tag, setTag] = useState<NewsTagFilter>("전체");
 
   const filteredItems = useMemo(
     () =>
@@ -83,7 +85,7 @@ export function ModelNewsFeed() {
       {filteredItems.length > 0 ? (
         <div className="space-y-5">
           {filteredItems.map((item) => (
-            <NewsCard key={item.id} item={item} />
+            <NewsCard key={item.id} item={item} onSelectTag={setTag} />
           ))}
         </div>
       ) : (
@@ -107,7 +109,13 @@ export function ModelNewsFeed() {
   );
 }
 
-function NewsCard({ item }: { item: ModelNewsItem }) {
+function NewsCard({
+  item,
+  onSelectTag,
+}: {
+  item: ModelNewsItem;
+  onSelectTag: (tag: NewsTagFilter) => void;
+}) {
   return (
     <article
       className={
@@ -193,24 +201,27 @@ function NewsCard({ item }: { item: ModelNewsItem }) {
           </div>
 
           <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2">
-            {item.tags.map((itemTag) => (
-              <button
-                key={itemTag}
-                type="button"
-                className="text-xs font-medium text-indigo-500 hover:text-indigo-700 hover:underline"
-                onClick={() => {
-                  if (
-                    NEWS_TAG_FILTERS.includes(
-                      itemTag as (typeof NEWS_TAG_FILTERS)[number]
-                    )
-                  ) {
-                    setTagFromCard(itemTag);
-                  }
-                }}
-              >
-                {itemTag}
-              </button>
-            ))}
+            {item.tags.map((itemTag) => {
+              const filterTag = toNewsTagFilter(itemTag);
+
+              return filterTag ? (
+                <button
+                  key={itemTag}
+                  type="button"
+                  className="text-xs font-medium text-indigo-500 hover:text-indigo-700 hover:underline"
+                  onClick={() => onSelectTag(filterTag)}
+                >
+                  {itemTag}
+                </button>
+              ) : (
+                <span
+                  key={itemTag}
+                  className="text-xs font-medium text-indigo-400"
+                >
+                  {itemTag}
+                </span>
+              );
+            })}
           </div>
 
           <a
@@ -228,10 +239,8 @@ function NewsCard({ item }: { item: ModelNewsItem }) {
   );
 }
 
-function setTagFromCard(tag: string) {
-  const selector = `button[data-news-tag="${CSS.escape(tag)}"]`;
-  const filterButton = document.querySelector<HTMLButtonElement>(selector);
-  filterButton?.click();
+function toNewsTagFilter(tag: string): NewsTagFilter | null {
+  return NEWS_TAG_FILTERS.find((filter) => filter === tag) ?? null;
 }
 
 function formatDate(date: string) {
