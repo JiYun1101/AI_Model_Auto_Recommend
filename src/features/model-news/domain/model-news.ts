@@ -125,7 +125,7 @@ export const MODEL_NEWS_ITEMS: ModelNewsItem[] = [
       "#연구",
       "#전문업무",
     ],
-    sourceUrl: "https://www.anthropic.com/news",
+    sourceUrl: "https://www.anthropic.com/claude-fable-and-mythos-5-1",
   },
   {
     id: "openai-chatgpt-images-2-5-2026-09-08",
@@ -155,7 +155,7 @@ export const MODEL_NEWS_ITEMS: ModelNewsItem[] = [
       "#디자인",
       "#콘텐츠제작",
     ],
-    sourceUrl: "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
+    sourceUrl: "https://help.openai.com/en/articles/6825453/chatgpt-release-notes",
   },
 ];
 
@@ -164,4 +164,13 @@ export const NEWS_PROVIDER_FILTERS = [
   "OpenAI",
   "Anthropic",
   "Google",
+] as const;
+
+export const NEWS_TAG_FILTERS = [
+  "전체",
+  "#코딩",
+  "#리서치",
+  "#에이전트",
+  "#빠른응답",
+  "#이미지생성",
 ] as const;
