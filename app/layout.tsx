@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/src/shared/components/providers";
+import { AiTypeTest } from "@/src/features/ai-profile/ui/ai-type-test";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
             </div>
           </header>
           <main className="flex-1">{children}</main>
+          <AiTypeTest />
           <footer className="py-6 text-center text-xs text-gray-400 border-t border-gray-200 bg-white">
             ModelFit Phase 1 MVP · 외부 API 없이 로컬 실행 가능
           </footer>
