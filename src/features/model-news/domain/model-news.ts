@@ -14,6 +14,11 @@ export type ModelNewsCategory =
   | "capability"
   | "availability";
 
+export interface ModelNewsSection {
+  heading: string;
+  paragraphs: string[];
+}
+
 export interface ModelNewsItem {
   id: string;
   provider: ModelNewsProvider;
@@ -26,6 +31,7 @@ export interface ModelNewsItem {
   changes: string[];
   recommendedFor: string[];
   tags: string[];
+  sections: ModelNewsSection[];
   sourceUrl: string;
   featured?: boolean;
 }
@@ -60,6 +66,22 @@ export const MODEL_NEWS_ITEMS: ModelNewsItem[] = [
       "#컴퓨터사용",
       "#복잡한작업",
     ],
+    sections: [
+      {
+        heading: "이번 업데이트의 핵심",
+        paragraphs: [
+          "GPT-6 Astra는 짧은 질답보다 여러 단계를 이어서 처리해야 하는 실무형 작업에 초점을 둔 업데이트입니다. 단순히 한 번의 답을 잘 만드는 것보다, 작업 맥락을 유지하고 다음 행동까지 연결하는 흐름이 중요해졌습니다.",
+          "특히 코딩, 리서치, 컴퓨터 사용처럼 도구를 오가며 결과물을 완성해야 하는 작업에서 활용도가 높습니다.",
+        ],
+      },
+      {
+        heading: "ModelFit에서는 이렇게 볼 수 있어요",
+        paragraphs: [
+          "속도나 비용보다 품질과 복잡한 작업 처리 능력을 우선하는 사용자에게 더 높은 우선순위를 줄 수 있습니다.",
+          "간단한 요약이나 반복적인 짧은 요청에는 더 빠르고 가벼운 모델이 효율적일 수 있으므로, Astra가 항상 최선인 것은 아닙니다.",
+        ],
+      },
+    ],
     sourceUrl: "https://openai.com/index/gpt-6-astra/",
     featured: true,
   },
@@ -91,6 +113,22 @@ export const MODEL_NEWS_ITEMS: ModelNewsItem[] = [
       "#에이전트",
       "#가성비",
       "#사이버보안",
+    ],
+    sections: [
+      {
+        heading: "Flash 계열의 포지션이 더 선명해졌어요",
+        paragraphs: [
+          "Flash 계열은 빠른 응답과 비용 효율이 중요한 제품 환경에서 자주 선택되는 모델입니다. 이번 업데이트는 그 장점을 유지하면서 코딩과 에이전트형 작업의 성능을 끌어올리는 방향에 가깝습니다.",
+          "즉, 최고 성능 하나만 노리기보다 실제 서비스에서 반복 호출하기 좋은 균형형 모델로 볼 수 있습니다.",
+        ],
+      },
+      {
+        heading: "어떤 사용자에게 잘 맞을까",
+        paragraphs: [
+          "IDE 보조, 빠른 코드 리뷰, 반복적인 자동화처럼 대기 시간이 작업 흐름을 끊는 상황에서 특히 유리합니다.",
+          "반대로 매우 복잡한 단일 문제에서 최고 품질이 필요한 경우에는 더 무거운 상위 모델과 비교해 선택하는 편이 좋습니다.",
+        ],
+      },
     ],
     sourceUrl:
       "https://blog.google/innovation-and-ai/models-and-research/gemini-models/3-8-flash-and-3-8-flash-cyber/",
@@ -125,6 +163,22 @@ export const MODEL_NEWS_ITEMS: ModelNewsItem[] = [
       "#연구",
       "#전문업무",
     ],
+    sections: [
+      {
+        heading: "한 모델보다 역할 분화가 눈에 띄어요",
+        paragraphs: [
+          "이번 5.1 계열은 모든 사용자를 한 모델로 커버하기보다, 코딩·지식 업무와 전문 연구 영역을 나눠 강화하는 흐름이 뚜렷합니다.",
+          "ModelFit 입장에서는 단순한 공급사 선호보다 실제 작업 종류를 먼저 보고 모델을 고르는 이유가 더 커진 셈입니다.",
+        ],
+      },
+      {
+        heading: "추천할 때 봐야 할 포인트",
+        paragraphs: [
+          "긴 문맥을 읽고 문서와 코드를 함께 다루는 작업에서는 Fable 계열을 우선 비교할 가치가 있습니다.",
+          "전문 연구형 모델은 접근 범위와 비용, 실제 사용 가능 여부까지 함께 확인해야 하므로 일반 사용자 추천과는 분리하는 것이 좋습니다.",
+        ],
+      },
+    ],
     sourceUrl: "https://www.anthropic.com/claude-fable-and-mythos-5-1",
   },
   {
@@ -155,7 +209,23 @@ export const MODEL_NEWS_ITEMS: ModelNewsItem[] = [
       "#디자인",
       "#콘텐츠제작",
     ],
-    sourceUrl: "https://help.openai.com/en/articles/6825453/chatgpt-release-notes",
+    sections: [
+      {
+        heading: "생성보다 수정 과정이 중요해졌어요",
+        paragraphs: [
+          "이미지 AI를 실제 업무에서 쓰면 첫 생성보다 이후 수정 횟수가 더 많아지는 경우가 흔합니다. 이번 업데이트는 이 반복 편집 경험을 줄이는 쪽에 초점이 맞춰져 있습니다.",
+          "처음부터 완벽한 프롬프트를 작성하지 않아도 결과를 보며 조금씩 수정하는 흐름이 자연스러워졌다는 점이 핵심입니다.",
+        ],
+      },
+      {
+        heading: "ModelFit 추천에서는 별도 축이 필요해요",
+        paragraphs: [
+          "이미지 생성은 일반 텍스트 모델과 평가 기준이 다릅니다. 텍스트 추론 성능보다 편집 일관성, 디테일 유지, 생성 속도 같은 요소를 따로 봐야 합니다.",
+          "향후 ModelFit에서 이미지 작업을 감지하면 텍스트 모델 랭킹과 분리된 이미지 모델 추천으로 연결하는 것이 적합합니다.",
+        ],
+      },
+    ],
+    sourceUrl: "https://help.openai.com/en/articles/6825453-chatgpt-release-notes",
   },
 ];
 
@@ -174,3 +244,7 @@ export const NEWS_TAG_FILTERS = [
   "#빠른응답",
   "#이미지생성",
 ] as const;
+
+export function getModelNewsItem(id: string) {
+  return MODEL_NEWS_ITEMS.find((item) => item.id === id);
+}
