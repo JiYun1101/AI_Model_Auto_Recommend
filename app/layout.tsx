@@ -53,6 +53,12 @@ export default function RootLayout({
                 >
                   모델 목록
                 </a>
+                <a
+                  href="/news"
+                  className="hover:text-indigo-600 transition-colors"
+                >
+                  모델 뉴스
+                </a>
               </nav>
             </div>
           </header>
