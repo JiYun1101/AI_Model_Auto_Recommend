@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MODEL_NEWS_ITEMS,
   NEWS_PROVIDER_FILTERS,
@@ -39,7 +40,7 @@ export function ModelNewsFeed() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="space-y-3">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {NEWS_PROVIDER_FILTERS.map((item) => {
@@ -83,11 +84,7 @@ export function ModelNewsFeed() {
       </div>
 
       {filteredItems.length > 0 ? (
-        <div className="space-y-5">
-          {filteredItems.map((item) => (
-            <NewsCard key={item.id} item={item} onSelectTag={setTag} />
-          ))}
-        </div>
+        <InfiniteNewsRail items={filteredItems} />
       ) : (
         <div className="rounded-3xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center">
           <p className="text-sm font-semibold text-gray-700">
@@ -105,147 +102,133 @@ export function ModelNewsFeed() {
           </button>
         </div>
       )}
+
+      <p className="text-xs leading-5 text-gray-400">
+        좌우로 스크롤해서 업데이트를 훑어보고, 원하는 뉴스를 클릭하면 전체
+        내용을 읽을 수 있어요.
+      </p>
     </div>
   );
 }
 
-function NewsCard({
-  item,
-  onSelectTag,
-}: {
-  item: ModelNewsItem;
-  onSelectTag: (tag: NewsTagFilter) => void;
-}) {
+function InfiniteNewsRail({ items }: { items: ModelNewsItem[] }) {
+  const railRef = useRef<HTMLDivElement>(null);
+  const repeatedItems = items.length > 1 ? [...items, ...items, ...items] : items;
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail || items.length <= 1) return;
+
+    const moveToMiddleCopy = () => {
+      const segmentWidth = rail.scrollWidth / 3;
+      rail.scrollLeft = segmentWidth;
+    };
+
+    const frame = requestAnimationFrame(moveToMiddleCopy);
+    return () => cancelAnimationFrame(frame);
+  }, [items]);
+
+  function handleScroll() {
+    const rail = railRef.current;
+    if (!rail || items.length <= 1) return;
+
+    const segmentWidth = rail.scrollWidth / 3;
+    if (!segmentWidth) return;
+
+    if (rail.scrollLeft < segmentWidth * 0.35) {
+      rail.scrollLeft += segmentWidth;
+    } else if (rail.scrollLeft > segmentWidth * 1.65) {
+      rail.scrollLeft -= segmentWidth;
+    }
+  }
+
   return (
-    <article
-      className={
-        item.featured
-          ? "overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-sm ring-1 ring-indigo-50"
-          : "overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
-      }
+    <div
+      ref={railRef}
+      onScroll={handleScroll}
+      className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6"
+      aria-label="모델 뉴스 목록"
     >
-      <div className="p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-          <span className="rounded-full bg-gray-900 px-2.5 py-1 text-white">
-            {item.provider}
-          </span>
-          <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-indigo-700">
-            {CATEGORY_LABELS[item.category]}
-          </span>
-          {item.featured && (
-            <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">
-              주목 업데이트
-            </span>
-          )}
-          <time className="ml-auto text-gray-400">
-            {formatDate(item.publishedAt)}
-          </time>
-        </div>
-
-        <div className="mt-5">
-          <h2 className="text-xl font-bold leading-8 text-gray-950 sm:text-2xl">
-            {item.title}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-gray-500">{item.subtitle}</p>
-        </div>
-
-        <div className="mt-6 rounded-2xl bg-gray-50 p-4 sm:p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-indigo-500">
-            30초 요약
-          </p>
-          <p className="mt-2 text-sm leading-6 text-gray-700">{item.summary}</p>
-        </div>
-
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <section>
-            <h3 className="text-sm font-bold text-gray-900">뭐가 달라졌어?</h3>
-            <ul className="mt-3 space-y-2">
-              {item.changes.map((change) => (
-                <li
-                  key={change}
-                  className="flex gap-2 text-sm leading-6 text-gray-600"
-                >
-                  <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-indigo-500" />
-                  <span>{change}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section>
-            <h3 className="text-sm font-bold text-gray-900">이럴 때 추천</h3>
-            <ul className="mt-3 space-y-2">
-              {item.recommendedFor.map((useCase) => (
-                <li
-                  key={useCase}
-                  className="flex gap-2 text-sm leading-6 text-gray-600"
-                >
-                  <span aria-hidden="true">✓</span>
-                  <span>{useCase}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-
-        <div className="mt-6 border-t border-gray-100 pt-5">
-          <div className="flex flex-wrap gap-2">
-            {item.modelNames.map((modelName) => (
-              <span
-                key={modelName}
-                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800"
-              >
-                {modelName}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2">
-            {item.tags.map((itemTag) => {
-              const filterTag = toNewsTagFilter(itemTag);
-
-              return filterTag ? (
-                <button
-                  key={itemTag}
-                  type="button"
-                  className="text-xs font-medium text-indigo-500 hover:text-indigo-700 hover:underline"
-                  onClick={() => onSelectTag(filterTag)}
-                >
-                  {itemTag}
-                </button>
-              ) : (
-                <span
-                  key={itemTag}
-                  className="text-xs font-medium text-indigo-400"
-                >
-                  {itemTag}
-                </span>
-              );
-            })}
-          </div>
-
-          <a
-            href={item.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-indigo-600"
-          >
-            공식 발표 원문 보기
-            <span aria-hidden="true">↗</span>
-          </a>
-        </div>
-      </div>
-    </article>
+      {repeatedItems.map((item, index) => (
+        <NewsListCard
+          key={`${item.id}-${index}`}
+          item={item}
+          duplicate={items.length > 1 && (index < items.length || index >= items.length * 2)}
+        />
+      ))}
+    </div>
   );
 }
 
-function toNewsTagFilter(tag: string): NewsTagFilter | null {
-  return NEWS_TAG_FILTERS.find((filter) => filter === tag) ?? null;
+function NewsListCard({
+  item,
+  duplicate,
+}: {
+  item: ModelNewsItem;
+  duplicate: boolean;
+}) {
+  return (
+    <Link
+      href={`/news/${item.id}`}
+      aria-hidden={duplicate || undefined}
+      tabIndex={duplicate ? -1 : undefined}
+      className="group w-[82vw] max-w-[620px] flex-none snap-start overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md sm:w-[560px]"
+    >
+      <article className="grid min-h-[260px] grid-cols-[1fr_120px] sm:grid-cols-[1fr_180px]">
+        <div className="flex min-w-0 flex-col p-5 sm:p-7">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
+            <span className="rounded-full bg-gray-900 px-2.5 py-1 text-white">
+              {item.provider}
+            </span>
+            <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-indigo-700">
+              {CATEGORY_LABELS[item.category]}
+            </span>
+            <time className="text-gray-400">{formatDate(item.publishedAt)}</time>
+          </div>
+
+          <h2 className="mt-5 line-clamp-3 text-xl font-extrabold leading-8 tracking-tight text-gray-950 transition group-hover:text-indigo-700 sm:text-2xl">
+            {item.title}
+          </h2>
+
+          <p className="mt-3 line-clamp-2 text-sm leading-6 text-gray-500">
+            {item.summary}
+          </p>
+
+          <div className="mt-auto flex flex-wrap gap-2 pt-5">
+            {item.tags.slice(0, 3).map((itemTag) => (
+              <span key={itemTag} className="text-xs font-medium text-indigo-500">
+                {itemTag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-100 via-violet-50 to-white p-4 sm:p-5">
+          <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full border border-indigo-200/60" />
+          <div className="absolute -bottom-10 -left-5 h-28 w-28 rounded-full bg-white/60" />
+
+          <div className="relative flex h-full flex-col justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-400">
+              ModelFit Brief
+            </span>
+            <div>
+              <p className="text-xs font-semibold text-gray-400">MODEL</p>
+              <p className="mt-1 break-words text-sm font-black leading-5 text-gray-900 sm:text-lg">
+                {item.modelNames[0]}
+              </p>
+              <span className="mt-4 inline-flex text-lg text-indigo-600 transition group-hover:translate-x-1">
+                →
+              </span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </Link>
+  );
 }
 
 function formatDate(date: string) {
   return new Intl.DateTimeFormat("ko-KR", {
-    year: "numeric",
     month: "short",
     day: "numeric",
   }).format(new Date(`${date}T00:00:00+09:00`));
