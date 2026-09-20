@@ -6,11 +6,14 @@ import type { ModelProfile } from "@/src/shared/validation/model-profile.schema"
 async function fetchModels(params: {
   provider?: string;
   free?: boolean;
+  openWeight?: boolean;
   status?: string;
 }): Promise<{ models: ModelProfile[]; count: number }> {
   const sp = new URLSearchParams();
   if (params.provider) sp.set("provider", params.provider);
   if (params.free !== undefined) sp.set("free", String(params.free));
+  if (params.openWeight !== undefined)
+    sp.set("openWeight", String(params.openWeight));
   if (params.status) sp.set("status", params.status);
 
   const res = await fetch(`/api/models?${sp.toString()}`);
