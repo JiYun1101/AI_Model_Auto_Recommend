@@ -16,14 +16,20 @@ export async function POST(request: NextRequest) {
 
     const parsed = RecommendRequestSchema.safeParse(body);
     if (!parsed.success) {
-      throw new AppError("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "입력값이 유효하지 않습니다.");
+      throw new AppError(
+        "VALIDATION_ERROR",
+        parsed.error.issues[0]?.message ?? "입력값이 유효하지 않습니다."
+      );
     }
 
-    const { prompt, mode } = parsed.data;
+    const { prompt, mode, priorities } = parsed.data;
     const processedPrompt = preprocessInput(prompt);
 
     const analyzer = createPromptAnalyzer();
-    const analysis = await analyzer.analyze({ prompt: processedPrompt });
+    const baseAnalysis = await analyzer.analyze({ prompt: processedPrompt });
+    const analysis = priorities
+      ? { ...baseAnalysis, priorities }
+      : baseAnalysis;
 
     const repo = getModelCatalogRepository();
     const { recommendations, metadata } = await recommendModels(repo, analysis, {

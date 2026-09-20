@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { RecommendationCard } from "@/src/features/model-recommendation/ui/components/recommendation-card";
 import { Badge } from "@/src/shared/components/badge";
+import { useAppStore } from "@/src/shared/lib/store";
 import type { RecommendResponse } from "@/src/shared/validation/api.schema";
 import Link from "next/link";
 
@@ -39,6 +40,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
 function RecommendResultContent() {
   const params = useSearchParams();
   const raw = params.get("result");
+  const lastPrompt = useAppStore((s) => s.lastPrompt);
 
   if (!raw) {
     return (
@@ -150,7 +152,11 @@ function RecommendResultContent() {
         </h2>
         <div className="space-y-4">
           {recommendations.map((rec) => (
-            <RecommendationCard key={rec.modelId} recommendation={rec} />
+            <RecommendationCard
+              key={rec.modelId}
+              recommendation={rec}
+              prompt={lastPrompt || undefined}
+            />
           ))}
         </div>
       </section>

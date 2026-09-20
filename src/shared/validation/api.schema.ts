@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { PromptAnalysisSchema } from "./prompt-analysis.schema";
+import {
+  PromptAnalysisSchema,
+  PrioritiesSchema,
+} from "./prompt-analysis.schema";
 import {
   ModelRecommendationSchema,
   RecommendationMetadataSchema,
@@ -19,6 +22,7 @@ export const AnalyzeResponseSchema = z.object({
 export const RecommendRequestSchema = z.object({
   prompt: z.string().min(1, "프롬프트를 입력해주세요.").max(50000),
   mode: z.enum(["all", "free_only"]).default("all"),
+  priorities: PrioritiesSchema.optional(),
 });
 
 export const RecommendResponseSchema = z.object({

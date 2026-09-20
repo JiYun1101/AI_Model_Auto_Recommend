@@ -5,6 +5,10 @@ import { Badge } from "@/src/shared/components/badge";
 import { useFeedback } from "@/src/features/feedback/ui/hooks/use-feedback";
 import type { ModelRecommendation } from "@/src/shared/validation/recommendation.schema";
 import type { ModelProfile } from "@/src/shared/validation/model-profile.schema";
+import {
+  copyPromptToClipboard,
+  getModelWebUrl,
+} from "../lib/model-handoff";
 import { clsx } from "clsx";
 
 const TYPE_LABELS: Record<ModelRecommendation["recommendationType"], string> = {
@@ -34,10 +38,14 @@ const TYPE_DESCRIPTIONS: Record<
 interface Props {
   recommendation: ModelRecommendation;
   model?: ModelProfile;
+  prompt?: string;
 }
 
-export function RecommendationCard({ recommendation, model }: Props) {
+export function RecommendationCard({ recommendation, model, prompt }: Props) {
   const [feedbackSent, setFeedbackSent] = useState<"helpful" | "not_helpful" | null>(null);
+  const [handoffStatus, setHandoffStatus] = useState<
+    "opened" | "copied" | "copy_failed" | null
+  >(null);
   const { mutate: sendFeedback, isPending: isSending } = useFeedback();
 
   function handleFeedback(result: "helpful" | "not_helpful") {
@@ -48,7 +56,27 @@ export function RecommendationCard({ recommendation, model }: Props) {
     );
   }
 
+  async function handleHandoff() {
+    if (!prompt) return;
+
+    const webUrl = getModelWebUrl(recommendation.modelId);
+
+    // 클릭 이벤트 안에서 바로 열어야 팝업 차단 가능성이 가장 낮다.
+    if (webUrl) {
+      window.open(webUrl, "_blank", "noopener,noreferrer");
+    }
+
+    const copied = await copyPromptToClipboard(prompt);
+    if (!copied) {
+      setHandoffStatus("copy_failed");
+      return;
+    }
+
+    setHandoffStatus(webUrl ? "opened" : "copied");
+  }
+
   const scorePercent = Math.min(100, Math.max(0, recommendation.score));
+  const webUrl = getModelWebUrl(recommendation.modelId);
 
   return (
     <article
@@ -135,6 +163,43 @@ export function RecommendationCard({ recommendation, model }: Props) {
           <Badge variant="yellow">오픈 가중치</Badge>
         )}
       </div>
+
+      {/* 바로 실행 */}
+      {prompt && (
+        <section
+          aria-label="추천 모델에서 프롬프트 실행"
+          className="rounded-xl bg-indigo-50 border border-indigo-100 p-3"
+        >
+          <button
+            type="button"
+            onClick={handleHandoff}
+            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+          >
+            {webUrl ? "프롬프트 복사 + 이 모델 열기 ↗" : "프롬프트 복사"}
+          </button>
+          <p className="mt-2 text-xs text-indigo-600">
+            {webUrl
+              ? "새 탭에서 모델을 열고, 작성한 프롬프트는 클립보드에 복사합니다."
+              : "이 모델은 바로 열 수 있는 공식 웹 채팅 경로가 없어 프롬프트만 복사합니다."}
+          </p>
+          {handoffStatus && (
+            <p
+              className={clsx(
+                "mt-1 text-xs font-medium",
+                handoffStatus === "copy_failed" ? "text-red-600" : "text-green-700"
+              )}
+              aria-live="polite"
+            >
+              {handoffStatus === "opened" &&
+                "모델 페이지를 열었습니다. 입력창에 붙여넣기만 하면 됩니다."}
+              {handoffStatus === "copied" &&
+                "프롬프트를 복사했습니다."}
+              {handoffStatus === "copy_failed" &&
+                "자동 복사에 실패했습니다. 브라우저의 클립보드 권한을 확인해주세요."}
+            </p>
+          )}
+        </section>
+      )}
 
       {/* 마지막 확인일 */}
       {model?.lastVerifiedAt && (
