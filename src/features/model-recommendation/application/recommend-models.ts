@@ -9,7 +9,7 @@ import { filterModels } from "./model-filter";
 import { scoreModel, rankModels } from "./model-scorer";
 import { buildRecommendations } from "./recommendation-builder";
 
-const CATALOG_VERSION = "2025-07-01";
+const CATALOG_VERSION = "2026-09-20";
 
 export interface RecommendResult {
   recommendations: ModelRecommendation[];
