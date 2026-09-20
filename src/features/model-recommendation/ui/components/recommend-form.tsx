@@ -4,11 +4,21 @@ import { useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import { useRecommend } from "../hooks/use-recommend";
 import { useAppStore } from "@/src/shared/lib/store";
-import {
-  copyPromptToClipboard,
-  openPendingModelWindow,
-  sendPreparedWindowToModel,
-} from "../lib/model-handoff";
+
+const DEMO_PROMPTS = [
+  {
+    label: "코딩",
+    text: "Next.js 로그인 처리에서 간헐적으로 세션이 풀리는 원인을 분석하고 수정 방향을 제안해줘",
+  },
+  {
+    label: "리서치",
+    text: "긴 기술 문서 여러 개를 비교해서 핵심 차이와 의사결정 포인트를 근거 중심으로 정리해줘",
+  },
+  {
+    label: "빠른 작업",
+    text: "신규 AI 서비스의 랜딩페이지 헤드라인을 짧고 명확하게 10개 만들어줘",
+  },
+] as const;
 
 export function RecommendForm() {
   const [prompt, setPrompt] = useState("");
@@ -35,32 +45,13 @@ export function RecommendForm() {
       return;
     }
 
-    // 사용자 입력 이벤트 안에서 새 탭을 먼저 확보해야 브라우저 팝업 차단을
-    // 피할 수 있다. 추천 응답이 온 뒤 이 탭을 실제 모델 페이지로 이동시킨다.
-    const targetWindow = openPendingModelWindow();
-
-    // 외부 AI 웹앱의 DOM에는 직접 접근할 수 없으므로 프롬프트는 먼저
-    // 클립보드에 복사한다. 대상 페이지에서 바로 붙여넣어 사용할 수 있다.
-    void copyPromptToClipboard(trimmedPrompt);
-
     setLastPrompt(trimmedPrompt);
     mutate(trimmedPrompt, {
       onSuccess: (data) => {
-        const topRecommendation =
-          data.recommendations.find((item) => item.rank === 1) ??
-          data.recommendations[0];
-
-        if (topRecommendation) {
-          sendPreparedWindowToModel(targetWindow, topRecommendation.modelId);
-        } else {
-          targetWindow?.close();
-        }
-
         const encoded = encodeURIComponent(JSON.stringify(data));
         router.push(`/recommend?result=${encoded}`);
       },
       onError: (err) => {
-        targetWindow?.close();
         setError(err.message ?? "오류가 발생했습니다. 다시 시도해주세요.");
       },
     });
@@ -96,6 +87,24 @@ export function RecommendForm() {
           aria-invalid={!!error}
           className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 resize-none transition"
         />
+
+        <div className="mt-3 flex flex-wrap gap-2" aria-label="데모 프롬프트">
+          {DEMO_PROMPTS.map((example) => (
+            <button
+              key={example.label}
+              type="button"
+              disabled={isPending}
+              onClick={() => {
+                setPrompt(example.text);
+                setError("");
+              }}
+              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 disabled:opacity-50"
+            >
+              {example.label} 예시
+            </button>
+          ))}
+        </div>
+
         {error && (
           <p
             id={errorId}
@@ -151,7 +160,7 @@ export function RecommendForm() {
       </button>
 
       <p className="text-center text-xs text-gray-400">
-        Enter로 실행 · Shift+Enter로 줄바꿈 · 실행 시 프롬프트를 복사하고 1위 추천 모델을 새 탭에서 엽니다.
+        Enter로 추천 · Shift+Enter로 줄바꿈 · 외부 AI 페이지 이동은 추천 결과에서 직접 선택합니다.
       </p>
     </form>
   );

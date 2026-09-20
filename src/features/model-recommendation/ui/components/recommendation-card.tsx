@@ -8,6 +8,8 @@ import type { ModelProfile } from "@/src/shared/validation/model-profile.schema"
 import {
   copyPromptToClipboard,
   getModelWebUrl,
+  openPendingModelWindow,
+  sendPreparedWindowToModel,
 } from "../lib/model-handoff";
 import { clsx } from "clsx";
 
@@ -60,19 +62,25 @@ export function RecommendationCard({ recommendation, model, prompt }: Props) {
     if (!prompt) return;
 
     const webUrl = getModelWebUrl(recommendation.modelId);
-
-    // 클릭 이벤트 안에서 바로 열어야 팝업 차단 가능성이 가장 낮다.
-    if (webUrl) {
-      window.open(webUrl, "_blank", "noopener,noreferrer");
-    }
+    const pendingWindow = webUrl ? openPendingModelWindow() : null;
 
     const copied = await copyPromptToClipboard(prompt);
     if (!copied) {
+      pendingWindow?.close();
       setHandoffStatus("copy_failed");
       return;
     }
 
-    setHandoffStatus(webUrl ? "opened" : "copied");
+    if (webUrl) {
+      const moved = sendPreparedWindowToModel(
+        pendingWindow,
+        recommendation.modelId
+      );
+      setHandoffStatus(moved ? "opened" : "copied");
+      return;
+    }
+
+    setHandoffStatus("copied");
   }
 
   const scorePercent = Math.min(100, Math.max(0, recommendation.score));
@@ -175,12 +183,12 @@ export function RecommendationCard({ recommendation, model, prompt }: Props) {
             onClick={handleHandoff}
             className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
           >
-            {webUrl ? "프롬프트 복사 + 이 모델 열기 ↗" : "프롬프트 복사"}
+            {webUrl ? "프롬프트 복사하고 이동하기 ↗" : "프롬프트 복사"}
           </button>
           <p className="mt-2 text-xs text-indigo-600">
             {webUrl
-              ? "새 탭에서 모델을 열고, 작성한 프롬프트는 클립보드에 복사합니다."
-              : "이 모델은 바로 열 수 있는 공식 웹 채팅 경로가 없어 프롬프트만 복사합니다."}
+              ? "작성한 프롬프트를 먼저 복사한 뒤 해당 AI 서비스 페이지로 이동합니다. 이동 후 입력창에 붙여넣어 주세요."
+              : "공식 웹 채팅 경로가 확인되지 않은 모델이라 프롬프트만 복사합니다."}
           </p>
           {handoffStatus && (
             <p
@@ -191,7 +199,7 @@ export function RecommendationCard({ recommendation, model, prompt }: Props) {
               aria-live="polite"
             >
               {handoffStatus === "opened" &&
-                "모델 페이지를 열었습니다. 입력창에 붙여넣기만 하면 됩니다."}
+                "프롬프트를 복사했고 AI 서비스 페이지로 이동했습니다. 입력창에 붙여넣어 주세요."}
               {handoffStatus === "copied" &&
                 "프롬프트를 복사했습니다."}
               {handoffStatus === "copy_failed" &&

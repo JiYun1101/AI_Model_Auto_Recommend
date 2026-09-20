@@ -5,6 +5,8 @@ import { Suspense } from "react";
 import { RecommendationCard } from "@/src/features/model-recommendation/ui/components/recommendation-card";
 import { Badge } from "@/src/shared/components/badge";
 import { useAppStore } from "@/src/shared/lib/store";
+import { useModels } from "@/src/features/model-catalog/ui/hooks/use-models";
+import { AI_TYPE_PROFILES } from "@/src/features/ai-profile/domain/ai-type";
 import type { RecommendResponse } from "@/src/shared/validation/api.schema";
 import Link from "next/link";
 
@@ -41,6 +43,8 @@ function RecommendResultContent() {
   const params = useSearchParams();
   const raw = params.get("result");
   const lastPrompt = useAppStore((s) => s.lastPrompt);
+  const aiType = useAppStore((s) => s.aiType);
+  const { data: modelData } = useModels();
 
   if (!raw) {
     return (
@@ -71,6 +75,10 @@ function RecommendResultContent() {
   }
 
   const { analysis, recommendations, metadata } = data;
+  const savedProfile = aiType ? AI_TYPE_PROFILES[aiType] : null;
+  const modelById = new Map(
+    (modelData?.models ?? []).map((model) => [model.id, model])
+  );
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
@@ -131,6 +139,20 @@ function RecommendResultContent() {
           </div>
         )}
 
+        <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-3 text-xs text-gray-500">
+          <span>
+            모델 데이터 기준: <strong className="font-semibold text-gray-700">{metadata.catalogVersion}</strong>
+          </span>
+          {savedProfile && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                개인화: <strong className="font-semibold text-gray-700">{savedProfile.emoji} {savedProfile.title}</strong> 선호도 반영
+              </span>
+            </>
+          )}
+        </div>
+
         {analysis.reasons.length > 0 && (
           <details className="text-xs text-gray-400 cursor-pointer">
             <summary className="hover:text-gray-600 transition-colors">
@@ -155,6 +177,7 @@ function RecommendResultContent() {
             <RecommendationCard
               key={rec.modelId}
               recommendation={rec}
+              model={modelById.get(rec.modelId)}
               prompt={lastPrompt || undefined}
             />
           ))}

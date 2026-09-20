@@ -12,7 +12,7 @@ export default function HomePage() {
           프롬프트를 입력하면 가장 적합한 AI 모델을 추천해드립니다.
         </p>
         <p className="text-sm text-gray-400">
-          외부 API 키 없이 바로 사용 가능 · 비로그인 지원
+          최신 모델 카탈로그 기준 · 로그인 없이 바로 추천
         </p>
       </section>
 
@@ -93,7 +93,7 @@ const EXAMPLES = [
   },
   {
     label: "추론",
-    text: "GPT-4o와 Claude Sonnet의 장단점을 비교 분석해줘",
+    text: "최신 OpenAI·Claude 모델 중 복잡한 리서치에 더 적합한 선택을 비교해줘",
   },
   {
     label: "요약",
