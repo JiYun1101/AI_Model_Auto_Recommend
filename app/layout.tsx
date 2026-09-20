@@ -65,7 +65,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <AiTypeTest />
           <footer className="py-6 text-center text-xs text-gray-400 border-t border-gray-200 bg-white">
-            ModelFit Phase 1 MVP · 외부 API 없이 로컬 실행 가능
+            ModelFit MVP · 최신 모델 카탈로그 기반 개인화 추천
           </footer>
         </Providers>
       </body>
