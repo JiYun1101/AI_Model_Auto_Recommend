@@ -232,7 +232,7 @@ function ResultView({
       </div>
 
       <div className="mt-7 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-xs leading-5 text-green-700">
-        이 결과는 저장되어 다음 모델 추천의 품질·비용·속도 가중치에 자동 반영됩니다.
+        이 선호도는 현재 브라우저에 저장되며, 다음 모델 추천의 품질·비용·속도 가중치에 반영됩니다. 로그인 계정 학습이나 사용 이력 기반 자동 학습 기능은 아직 포함하지 않습니다.
       </div>
 
       <div className="mt-5 flex gap-2">
@@ -248,7 +248,7 @@ function ResultView({
           onClick={onClose}
           className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
         >
-          추천에 적용하기
+          선호도 적용하기
         </button>
       </div>
     </div>
